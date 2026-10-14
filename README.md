@@ -28,7 +28,7 @@ Why XML only: the unified JSON manifest can't be sideloaded or line-of-business 
 
 ## What gets added to the meeting
 
-A divider, then **Interactio meeting**, the "Join Interactio meeting" link, the plain URL, and a closing divider. To change the wording, edit `buildMeetingBlock()` in `docs/link.js`, and update the matching text in the replace regex in `mergeMeetingBlock()`.
+A short divider, **Interactio meeting**, then "Join Interactio meeting: <link>" where the clickable text is the URL itself, and a closing divider. The URL appears only once, so plain-text views of the invite (Google Calendar, text-only mail) don't show it twice. To change the wording, edit `buildMeetingBlock()` in `docs/link.js`, and update the matching text in the replace regex in `mergeMeetingBlock()`.
 
 - **Same link already in the body:** nothing is added.
 - **An older Interactio block** (for example after the user changed their link): it's replaced, not duplicated.

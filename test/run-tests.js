@@ -58,6 +58,13 @@ test('block contains link, Join text and id', () => {
   const b = L.buildMeetingBlock(LINK);
   ok(b.includes(`href="${LINK}"`)); ok(b.includes('Join Interactio meeting')); ok(b.includes('id="interactio-meeting"'));
 });
+test('link appears exactly once as visible text (plain-text invites)', () => {
+  const b = L.buildMeetingBlock(LINK);
+  const text = b.replace(/<[^>]+>/g, ' ');
+  eq(text.split(LINK).length - 1, 1, 'visible URL count');
+  eq(b.split(`href="${LINK}"`).length - 1, 1, 'one href');
+  ok(!/_{41,}/.test(b), 'divider lines are short');
+});
 test('block HTML-escapes the link', () => {
   const r = L.normalizeInteractioLink('https://interactio.com/x"><script>alert(1)</script>');
   ok(r.ok, 'validator accepts it (no spaces)');

@@ -36,17 +36,22 @@
       .replace(/'/g, '&#39;');
   }
 
-  /** HTML block appended to the meeting body. `link` must already be normalized. */
+  /**
+   * HTML block appended to the meeting body. `link` must already be normalized.
+   * The link text IS the URL, so plain-text renderings of the invite (e.g. Google Calendar,
+   * text-only mail clients) show the link once instead of "text<url>" plus the URL again.
+   * Divider lines are kept short so they don't wrap in narrow views.
+   */
   function buildMeetingBlock(link) {
     var safe = escapeHtml(link);
+    var rule = '<div>' + new Array(41).join('_') + '</div>';
     return (
       '<div id="' + BLOCK_ID + '">' +
       '<br>' +
-      '<div>________________________________________________________________________________</div>' +
+      rule +
       '<div style="font-size:14pt;font-weight:bold;">Interactio meeting</div>' +
-      '<div><a href="' + safe + '">Join Interactio meeting</a></div>' +
-      '<div>' + safe + '</div>' +
-      '<div>________________________________________________________________________________</div>' +
+      '<div>Join Interactio meeting: <a href="' + safe + '">' + safe + '</a></div>' +
+      rule +
       '</div>'
     );
   }
