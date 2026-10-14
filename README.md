@@ -31,12 +31,17 @@ A divider, then **Interactio meeting**, the "Join Interactio meeting" link, the 
 - **Same link already in the body:** nothing is added.
 - **An older Interactio block** (for example after the user changed their link): it's replaced, not duplicated.
 
-## 1. Logo (do this before rollout)
+## 1. Icons
 
-Placeholder icons are committed. To swap in the real Interactio mark:
+All icons are generated from the Interactio logo in `src-assets/interactio-logo.png`:
+
+- **Button icons** are grey (`#919191`) with the swirl cut out, as Microsoft requires.
+- **Add-in list icons** use the magenta logo.
+
+If the logo changes, run:
 
 ```bash
-python3 scripts/make-icons.py path/to/interactio-logo.png   # transparent or white background
+python3 scripts/make-icons.py src-assets/interactio-logo.png
 ```
 
 ## 2. Host on GitHub Pages

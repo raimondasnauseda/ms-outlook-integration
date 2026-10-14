@@ -46,7 +46,17 @@ def alpha_from_source(im):
     """Mask of the mark: uses alpha if present, else treats near-white as background."""
     a = im.getchannel("A")
     if a.getextrema()[0] < 250:
-        return a
+        # Knock out white detail inside the mark (e.g. the white swirl on the magenta disc),
+        # so the grayscale icon keeps the swirl as a cut-out instead of a flat grey disc.
+        rgb = im.convert("RGB")
+        b = rgb.tobytes()
+        mins = [min(b[i], b[i + 1], b[i + 2]) for i in range(0, len(b), 3)]
+        opaque = sorted(m for m, al in zip(mins, a.tobytes()) if al > 200)
+        floor = opaque[len(opaque) // 50] if opaque else 0
+        span = max(1, 255 - floor)
+        knock = Image.new("L", im.size)
+        knock.putdata([max(0, min(255, (m - floor) * 255 // span)) for m in mins])
+        return Image.composite(Image.new("L", im.size, 0), a, knock)
     lum = ImageOps.grayscale(im.convert("RGB"))
     return ImageOps.invert(lum).point(lambda v: 255 if v > 40 else int(v * 6))
 
@@ -65,7 +75,7 @@ def main():
     for s in COLOR_SIZES:
         pad = round(s * 0.08)
         inner = s - 2 * pad
-        tile = Image.new("RGBA", (s, s), (255, 255, 255, 255))
+        tile = Image.new("RGBA", (s, s), (0, 0, 0, 0))
         logo = src.resize((inner, inner), Image.LANCZOS)
         tile.paste(logo, (pad, pad), logo)
         tile.save(OUT / f"icon-{s}.png", optimize=True)
