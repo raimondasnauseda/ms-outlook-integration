@@ -56,14 +56,14 @@ for (const inp of rejected) test(`rejects ${JSON.stringify(inp && inp.length > 6
 const LINK = 'https://meeting.interactio.com/link/raimondas';
 test('block contains link, Join text and id', () => {
   const b = L.buildMeetingBlock(LINK);
-  ok(b.includes(`href="${LINK}"`)); ok(b.includes('Join Interactio meeting')); ok(b.includes('id="interactio-meeting"'));
+  ok(b.includes(`href="${LINK}"`)); ok(b.includes('Join: ')); ok(b.includes('id="interactio-meeting"'));
 });
-test('link appears exactly once as visible text (plain-text invites)', () => {
+test('block: two lines, purple dot, link shown once, no leading blank line', () => {
   const b = L.buildMeetingBlock(LINK);
-  const text = b.replace(/<[^>]+>/g, ' ');
-  eq(text.split(LINK).length - 1, 1, 'visible URL count');
+  const text = b.replace(/<\/div>/g, '\n').replace(/<[^>]+>/g, '').replace(/&#x1F7E3;/g, '\u{1F7E3}').trim();
+  eq(text, '\u{1F7E3} Interactio meeting\nJoin: ' + LINK);
+  ok(!/<br/i.test(b), 'no <br>'); ok(!/_{5,}/.test(b), 'no divider lines');
   eq(b.split(`href="${LINK}"`).length - 1, 1, 'one href');
-  ok(!/_{41,}/.test(b), 'divider lines are short');
 });
 test('block HTML-escapes the link', () => {
   const r = L.normalizeInteractioLink('https://interactio.com/x"><script>alert(1)</script>');
@@ -83,15 +83,39 @@ test('merge replaces an older Interactio block instead of adding a second', () =
   const old = L.mergeMeetingBlock('<p>Agenda</p>', 'https://meeting.interactio.com/link/old') + '<p>Footer</p>';
   const out = L.mergeMeetingBlock(old, LINK);
   ok(!out.includes('/link/old'), 'old link removed'); ok(out.includes(LINK));
-  eq(out.split('Join Interactio meeting').length - 1, 1, 'one block');
+  eq(out.split('Interactio meeting').length - 1, 1, 'one block');
   ok(out.startsWith('<p>Agenda</p>') && out.endsWith('<p>Footer</p>'), 'surrounding content kept');
 });
-test('merge replaces a block that Outlook rewrote (x_ id, spans)', () => {
-  const rewritten = '<html><body><p>Hi</p><div id="x_interactio-meeting"><br><div><span>' + '_'.repeat(80) +
+const V1 = (u) => `<div id="interactio-meeting"><br><div>${'_'.repeat(80)}</div><div style="font-size:14pt;font-weight:bold;">Interactio meeting</div><div><a href="${u}">Join Interactio meeting</a></div><div>${u}</div><div>${'_'.repeat(80)}</div></div>`;
+const V2 = (u) => `<div id="interactio-meeting"><br><div>${'_'.repeat(40)}</div><div style="font-size:14pt;font-weight:bold;">Interactio meeting</div><div>Join Interactio meeting: <a href="${u}">${u}</a></div><div>${'_'.repeat(40)}</div></div>`;
+for (const [name, V] of [['v1 (two links + long rules)', V1], ['v2 (short rules)', V2]]) {
+  test(`merge replaces an earlier ${name} block cleanly`, () => {
+    const body = `<html><body><p>Agenda</p>${V('https://interactio.io/old')}<p>Footer</p></body></html>`;
+    const out = L.mergeMeetingBlock(body, LINK);
+    ok(!out.includes('interactio.io/old') && !out.includes('___'), 'old block fully removed');
+    ok(out.includes('<p>Agenda</p>') && out.includes('<p>Footer</p></body></html>'), 'surroundings intact');
+    eq(out.split('interactio-meeting').length - 1, 1, 'one block');
+  });
+}
+test('merge replaces a block that Outlook rewrote (x_ id, spans, nested divs)', () => {
+  const rewritten = '<html><body><div class="elementToProof"><p>Hi</p><div id="x_interactio-meeting"><br><div><span>' + '_'.repeat(80) +
     '</span></div><div><b>Interactio meeting</b></div><div><a href="https://interactio.io/old">Join Interactio meeting</a></div>' +
-    '<div>https://interactio.io/old</div><div><span>' + '_'.repeat(80) + '</span></div></div></body></html>';
+    '<div>https://interactio.io/old</div><div><span>' + '_'.repeat(80) + '</span></div></div></div></body></html>';
   const out = L.mergeMeetingBlock(rewritten, LINK);
-  ok(!out.includes('interactio.io/old')); ok(out.includes(LINK)); ok(out.endsWith('</body></html>'), 'body/html kept');
+  ok(!out.includes('interactio.io/old') && !out.includes('___')); ok(out.includes(LINK));
+  ok(out.endsWith('</div></body></html>'), 'wrapper div and body kept');
+});
+test('empty Outlook body → block only (text starts at the top)', () => {
+  const empty = '<html><head><meta charset="utf-8"><style>p{margin:0}</style></head><body><div class="elementToProof" style="font-size:11pt"><br></div></body></html>';
+  eq(L.mergeMeetingBlock(empty, LINK), L.buildMeetingBlock(LINK));
+  eq(L.mergeMeetingBlock('<div>&nbsp;</div>\n<p></p>', LINK), L.buildMeetingBlock(LINK));
+});
+test('non-empty body → block inserted before </body>', () => {
+  const out = L.mergeMeetingBlock('<html><body><p>Agenda</p></body></html>', LINK);
+  ok(out.endsWith(L.buildMeetingBlock(LINK) + '</body></html>'));
+});
+test('body with only an image is not treated as empty', () => {
+  ok(!L.isBlankHtml('<html><body><img src="x.png"></body></html>'));
 });
 test('merge handles empty/null body', () => {
   ok(L.mergeMeetingBlock('', LINK).includes(LINK)); ok(L.mergeMeetingBlock(null, LINK).includes(LINK));

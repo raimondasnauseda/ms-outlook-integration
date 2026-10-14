@@ -37,39 +37,67 @@
   }
 
   /**
-   * HTML block appended to the meeting body. `link` must already be normalized.
-   * The link text IS the URL, so plain-text renderings of the invite (e.g. Google Calendar,
-   * text-only mail clients) show the link once instead of "text<url>" plus the URL again.
-   * Divider lines are kept short so they don't wrap in narrow views.
+   * HTML block added to the meeting body. `link` must already be normalized.
+   * Renders as two lines, in rich and plain-text views alike:
+   *   🟣 Interactio meeting
+   *   Join: https://…
+   * The link text IS the URL, so plain-text renderings (e.g. Google Calendar) show it once.
    */
   function buildMeetingBlock(link) {
     var safe = escapeHtml(link);
-    var rule = '<div>' + new Array(41).join('_') + '</div>';
     return (
       '<div id="' + BLOCK_ID + '">' +
-      '<br>' +
-      rule +
-      '<div style="font-size:14pt;font-weight:bold;">Interactio meeting</div>' +
-      '<div>Join Interactio meeting: <a href="' + safe + '">' + safe + '</a></div>' +
-      rule +
+      '<div>&#x1F7E3; <b>Interactio meeting</b></div>' +
+      '<div>Join: <a href="' + safe + '">' + safe + '</a></div>' +
       '</div>'
     );
   }
 
+  /** True if the HTML has no visible content (Outlook's "empty" body is still a full document). */
+  function isBlankHtml(html) {
+    var s = String(html || '');
+    if (/<(img|table|hr|iframe|object|video)\b/i.test(s)) return false;
+    s = s.replace(/<head[\s\S]*?<\/head>/gi, '')
+         .replace(/<(style|script)[\s\S]*?<\/\1>/gi, '')
+         .replace(/<!--[\s\S]*?-->/g, '')
+         .replace(/<[^>]+>/g, '')
+         .replace(/&nbsp;|&#160;|&#xa0;|\u00a0|\u200b/gi, '');
+    return !/\S/.test(s);
+  }
+
+  /**
+   * Finds an existing Interactio block (any version; Outlook may rename the id to e.g.
+   * "x_interactio-meeting") and returns [start, end) of its outer <div>, or null.
+   * Walks <div>/</div> tags to find the matching close, so nested markup is handled.
+   */
+  function findExistingBlock(html) {
+    var open = /<div\b[^>]*\bid=["']?[a-z0-9_]*interactio-meeting["']?[^>]*>/i.exec(html);
+    if (!open) return null;
+    var tag = /<(\/?)div\b[^>]*>/gi;
+    tag.lastIndex = open.index + open[0].length;
+    var depth = 1, m;
+    while ((m = tag.exec(html))) {
+      depth += m[1] ? -1 : 1;
+      if (depth === 0) return [open.index, tag.lastIndex];
+    }
+    return null;
+  }
+
   /**
    * Returns the new body HTML, or null if the body already contains this exact link
-   * (nothing to do). A previous Interactio block (e.g. an older link) is replaced.
-   * Outlook may rewrite ids (e.g. "x_interactio-meeting"), so the match is tolerant.
+   * (nothing to do). An older Interactio block (e.g. a previous link or layout) is replaced.
+   * An empty body is replaced by the block, so the text starts at the very top.
    */
   function mergeMeetingBlock(bodyHtml, link) {
     var body = bodyHtml == null ? '' : String(bodyHtml);
     var safe = escapeHtml(link);
     if (body.indexOf(safe) !== -1 || body.indexOf(link) !== -1) return null;
     var block = buildMeetingBlock(link);
-    // From the block's opening tag, past the second underscore rule, plus its closing tags.
-    var re = /<div[^>]*\bid=["']?[a-z_]*interactio-meeting["']?[^>]*>(?:(?!<div[^>]*interactio-meeting)[\s\S])*?_{20,}(?:(?!<div[^>]*interactio-meeting)[\s\S])*?Join Interactio meeting(?:(?!<div[^>]*interactio-meeting)[\s\S])*?_{20,}(?:\s*<\/(?:div|span|p|font|o:p)>){0,4}/i;
-    if (re.test(body)) return body.replace(re, function () { return block; });
-    return body + block;
+    var found = findExistingBlock(body);
+    if (found) return body.slice(0, found[0]) + block + body.slice(found[1]);
+    if (isBlankHtml(body)) return block;
+    var close = body.search(/<\/body>/i);
+    return close === -1 ? body + block : body.slice(0, close) + block + body.slice(close);
   }
 
   var api = {
@@ -80,7 +108,8 @@
     normalizeInteractioLink: normalizeInteractioLink,
     escapeHtml: escapeHtml,
     buildMeetingBlock: buildMeetingBlock,
-    mergeMeetingBlock: mergeMeetingBlock
+    mergeMeetingBlock: mergeMeetingBlock,
+    isBlankHtml: isBlankHtml
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
