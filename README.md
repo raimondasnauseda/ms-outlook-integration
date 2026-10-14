@@ -1,5 +1,7 @@
 # Interactio for Outlook
 
+> Hosted at **https://raimondasnauseda.github.io/ms-outlook-integration/** (GitHub Pages, `main` → `/docs`). `manifest.xml` in this repo is already built for that URL.
+
 An Outlook **online-meeting provider add-in**. When someone creates a meeting in Outlook and picks **Interactio** (instead of Teams), the add-in adds their own saved Interactio link to the meeting, with a "Join Interactio meeting" link. It's the Outlook counterpart of *Interactio for Google Calendar*.
 
 - **One link per user.** Each user saves their link once. It's stored in their mailbox's add-in settings (`roamingSettings`), so it follows them across Outlook web, Windows, Mac and mobile. There's no backend.

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+           xsi:type="MailApp">
+  <Id>32aae4dc-d269-43cd-a56a-b20dab8c6016</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Interactio</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Interactio"/>
+  <Description DefaultValue="Add your personal Interactio meeting link to Outlook meetings."/>
+  <IconUrl DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/icon-128.png"/>
+  <SupportUrl DefaultValue="https://www.interactio.com"/>
+  <AppDomains>
+    <AppDomain>https://www.interactio.com</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.3"/>
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/settings.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+    <Form xsi:type="ItemEdit">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/settings.html"/>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Appointment" FormType="Edit"/>
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Description resid="residGroupLabel"/>
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.3">
+          <bt:Set Name="Mailbox"/>
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <DesktopFormFactor>
+            <FunctionFile resid="residFunctionFile"/>
+            <!-- Meeting organizer (compose). Only ONE function command is allowed here. -->
+            <ExtensionPoint xsi:type="AppointmentOrganizerCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="interactioGroup">
+                  <Label resid="residGroupLabel"/>
+                  <Control xsi:type="Button" id="interactioInsertButton">
+                    <Label resid="residInsertLabel"/>
+                    <Supertip>
+                      <Title resid="residInsertLabel"/>
+                      <Description resid="residInsertTooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="btn16"/>
+                      <bt:Image size="32" resid="btn32"/>
+                      <bt:Image size="64" resid="btn64"/>
+                      <bt:Image size="80" resid="btn80"/>
+                    </Icon>
+                    <Action xsi:type="ExecuteFunction">
+                      <FunctionName>insertInteractioMeeting</FunctionName>
+                    </Action>
+                  </Control>
+                  <Control xsi:type="Button" id="interactioSettingsButton">
+                    <Label resid="residSettingsLabel"/>
+                    <Supertip>
+                      <Title resid="residSettingsLabel"/>
+                      <Description resid="residSettingsTooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="btn16"/>
+                      <bt:Image size="32" resid="btn32"/>
+                      <bt:Image size="64" resid="btn64"/>
+                      <bt:Image size="80" resid="btn80"/>
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <SourceLocation resid="residSettingsUrl"/>
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+
+          <MobileFormFactor>
+            <FunctionFile resid="residFunctionFile"/>
+            <ExtensionPoint xsi:type="MobileOnlineMeetingCommandSurface">
+              <Control xsi:type="MobileButton" id="interactioMobileInsertButton">
+                <Label resid="residInsertLabel"/>
+                <Icon>
+                  <bt:Image size="25" scale="1" resid="btn25"/>
+                  <bt:Image size="25" scale="2" resid="btn50"/>
+                  <bt:Image size="25" scale="3" resid="btn75"/>
+                  <bt:Image size="32" scale="1" resid="btn32"/>
+                  <bt:Image size="32" scale="2" resid="btn64"/>
+                  <bt:Image size="32" scale="3" resid="btn96"/>
+                  <bt:Image size="48" scale="1" resid="btn48"/>
+                  <bt:Image size="48" scale="2" resid="btn96"/>
+                  <bt:Image size="48" scale="3" resid="btn144"/>
+                </Icon>
+                <Action xsi:type="ExecuteFunction">
+                  <FunctionName>insertInteractioMeeting</FunctionName>
+                </Action>
+              </Control>
+            </ExtensionPoint>
+          </MobileFormFactor>
+        </Host>
+      </Hosts>
+
+      <Resources>
+        <bt:Images>
+          <bt:Image id="btn16" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-16.png"/>
+          <bt:Image id="btn25" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-25.png"/>
+          <bt:Image id="btn32" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-32.png"/>
+          <bt:Image id="btn48" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-48.png"/>
+          <bt:Image id="btn50" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-50.png"/>
+          <bt:Image id="btn64" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-64.png"/>
+          <bt:Image id="btn75" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-75.png"/>
+          <bt:Image id="btn80" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-80.png"/>
+          <bt:Image id="btn96" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-96.png"/>
+          <bt:Image id="btn144" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/assets/btn-144.png"/>
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="residFunctionFile" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/commands.html"/>
+          <bt:Url id="residSettingsUrl" DefaultValue="https://raimondasnauseda.github.io/ms-outlook-integration/settings.html"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="residGroupLabel" DefaultValue="Interactio"/>
+          <bt:String id="residInsertLabel" DefaultValue="Interactio"/>
+          <bt:String id="residSettingsLabel" DefaultValue="Interactio link"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="residInsertTooltip" DefaultValue="Make this an Interactio meeting using your saved Interactio link."/>
+          <bt:String id="residSettingsTooltip" DefaultValue="Set or change your personal Interactio meeting link."/>
+        </bt:LongStrings>
+      </Resources>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>
