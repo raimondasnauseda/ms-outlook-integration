@@ -1,0 +1,15 @@
+{
+  "name": "interactio-outlook-addin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Outlook online-meeting provider add-in: adds each user's Interactio link to Outlook meetings.",
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "manifest": "node scripts/build-manifest.js",
+    "validate": "office-addin-manifest validate manifest.xml",
+    "icons": "python3 scripts/make-icons.py"
+  },
+  "devDependencies": {
+    "office-addin-manifest": "^2.0.0"
+  }
+}
